@@ -1,0 +1,6 @@
+{
+  "name": "CofreFoto — Centralizador Criptografado do Google Fotos",
+  "description": "Painel centralizado multi-conta para Google Fotos com backup automático criptografado de ponta a ponta (AES-256-GCM), busca inteligente por data, localização e rostos, agrupamento de conteúdo e compartilhamento seletivo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
