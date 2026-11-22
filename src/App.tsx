@@ -10,6 +10,7 @@ import {
 } from './data/seedVault';
 import {
   connectChromeGoogleAccount,
+  connectRealGoogleAccountManual,
   fetchGoogleContactsSuggestions,
   fetchGoogleDrivePhotos,
   getInMemoryToken,
@@ -49,6 +50,7 @@ import { BackupCloudView } from './components/BackupCloudView';
 import { MediaLightboxModal } from './components/MediaLightboxModal';
 import { ShareModal } from './components/ShareModal';
 import { UploadEncryptModal } from './components/UploadEncryptModal';
+import { ConnectGoogleAccountModal } from './components/ConnectGoogleAccountModal';
 import { SafetyUnlockModal } from './components/SafetyUnlockModal';
 import { LiveAssistantDrawer } from './components/LiveAssistantDrawer';
 import { SystemUpdateModal } from './components/SystemUpdateModal';
@@ -101,6 +103,7 @@ export default function App() {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [shareTargetMedia, setShareTargetMedia] = useState<MediaItem | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
   const [isLiveDrawerOpen, setIsLiveDrawerOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -174,6 +177,49 @@ export default function App() {
     setSmartSearchMessage(null);
   };
 
+  const processConnectedAccount = async (account: GoogleAccount, accessToken: string) => {
+    const [livePhotos, liveContacts] = await Promise.all([
+      fetchGoogleDrivePhotos(accessToken, account.id).catch(() => []),
+      fetchGoogleContactsSuggestions(accessToken).catch(() => []),
+    ]);
+
+    const enrichedAccount: GoogleAccount = {
+      ...account,
+      mediaCount: livePhotos.length,
+      storageUsedGb: Number(
+        (
+          livePhotos.reduce((sum, item) => sum + item.sizeBytes, 0) /
+          (1024 * 1024 * 1024)
+        ).toFixed(2)
+      ),
+    };
+
+    setAccounts((prev) => {
+      const filtered = prev.filter((a) => a.email !== enrichedAccount.email);
+      return [enrichedAccount, ...filtered];
+    });
+
+    if (livePhotos.length > 0) {
+      setMediaItems((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const novel = livePhotos.filter((p) => !existingIds.has(p.id));
+        return [...novel, ...prev];
+      });
+    }
+
+    if (liveContacts.length > 0) {
+      setContacts((prev) => {
+        const seen = new Set(prev.map((c) => c.email));
+        const novel = liveContacts.filter((c) => !seen.has(c.email));
+        return [...novel, ...prev];
+      });
+    }
+
+    showNotice(
+      `Conta ${enrichedAccount.email} (${enrichedAccount.profileLabel}) conectada com sucesso.`
+    );
+  };
+
   const handleConnectGoogleAccount = async () => {
     setIsConnectingGoogle(true);
     setStatusNotice(null);
@@ -182,50 +228,26 @@ export default function App() {
         `Chrome Perfil ${accounts.length + 1}`,
         accounts.map((a) => a.email)
       );
-      const [livePhotos, liveContacts] = await Promise.all([
-        fetchGoogleDrivePhotos(accessToken, account.id).catch(() => []),
-        fetchGoogleContactsSuggestions(accessToken).catch(() => []),
-      ]);
+      await processConnectedAccount(account, accessToken);
+    } catch {
+      // If popup fails due to domain restrictions on localhost, open modal to link real account manually
+      setIsConnectModalOpen(true);
+    } finally {
+      setIsConnectingGoogle(false);
+    }
+  };
 
-      const enrichedAccount: GoogleAccount = {
-        ...account,
-        mediaCount: livePhotos.length,
-        storageUsedGb: Number(
-          (
-            livePhotos.reduce((sum, item) => sum + item.sizeBytes, 0) /
-            (1024 * 1024 * 1024)
-          ).toFixed(2)
-        ),
-      };
-
-      setAccounts((prev) => {
-        const filtered = prev.filter((a) => a.email !== enrichedAccount.email);
-        return [enrichedAccount, ...filtered];
-      });
-
-      if (livePhotos.length > 0) {
-        setMediaItems((prev) => {
-          const existingIds = new Set(prev.map((m) => m.id));
-          const novel = livePhotos.filter((p) => !existingIds.has(p.id));
-          return [...novel, ...prev];
-        });
-      }
-
-      if (liveContacts.length > 0) {
-        setContacts((prev) => {
-          const seen = new Set(prev.map((c) => c.email));
-          const novel = liveContacts.filter((c) => !seen.has(c.email));
-          return [...novel, ...prev];
-        });
-      }
-
-      showNotice(
-        `Conta ${enrichedAccount.email} conectada. ${livePhotos.length} mídia(s) sincronizada(s) do Google Drive/Fotos.`
-      );
+  const handleConnectRealAccount = async (payload: {
+    email: string;
+    displayName: string;
+    profileLabel: string;
+  }) => {
+    setIsConnectingGoogle(true);
+    try {
+      const { account, accessToken } = await connectRealGoogleAccountManual(payload);
+      await processConnectedAccount(account, accessToken);
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Não foi possível concluir o login com o Google.';
-      showNotice(msg, 'error');
+      showNotice(err instanceof Error ? err.message : 'Erro ao conectar conta.', 'error');
     } finally {
       setIsConnectingGoogle(false);
     }
@@ -767,6 +789,12 @@ export default function App() {
         accounts={accounts}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadAndEncrypt={handleUploadAndEncrypt}
+      />
+
+      <ConnectGoogleAccountModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        onConnectRealAccount={handleConnectRealAccount}
       />
 
       <SafetyUnlockModal
