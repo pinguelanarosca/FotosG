@@ -57,12 +57,7 @@ export interface ConnectedGoogleResult {
   accessToken: string;
 }
 
-const FALLBACK_PROFILES = [
-  { email: 'alexandre.pessoal@gmail.com', name: 'Alexandre Satiro', label: 'Pessoal', chrome: 'Chrome Perfil 1' },
-  { email: 'studio.eventos@empresa.com', name: 'Studio & Eventos', label: 'Trabalho', chrome: 'Chrome Perfil 2' },
-  { email: 'album.familia@gmail.com', name: 'Álbum da Família', label: 'Família', chrome: 'Chrome Perfil 3' },
-  { email: 'contato.profissional@gmail.com', name: 'Pro Projetos', label: 'Projetos', chrome: 'Chrome Perfil 4' },
-];
+
 
 export async function connectChromeGoogleAccount(
   chromeProfileLabel = 'Perfil Chrome Conectado',
@@ -95,49 +90,6 @@ export async function connectChromeGoogleAccount(
 
     return { account, accessToken: credential.accessToken };
   } catch (err) {
-    const rawMessage = err instanceof Error ? err.message : String(err);
-    const isDomainOrPopupError =
-      rawMessage.includes('auth/unauthorized-domain') ||
-      rawMessage.includes('auth/popup-blocked') ||
-      rawMessage.includes('auth/popup-closed-by-user') ||
-      rawMessage.includes('auth/cancelled-popup-request') ||
-      rawMessage.includes('API key not valid') ||
-      rawMessage.includes('network');
-
-    if (isDomainOrPopupError) {
-      const existingSet = new Set(existingEmails.map((e) => e.toLowerCase()));
-      let profile = FALLBACK_PROFILES.find((p) => !existingSet.has(p.email.toLowerCase()));
-      if (!profile) {
-        const idx = existingEmails.length + 1;
-        profile = {
-          email: `usuario.conta${idx}@gmail.com`,
-          name: `Usuário Conta ${idx}`,
-          label: `Perfil ${idx}`,
-          chrome: `Chrome Perfil ${idx}`,
-        };
-      }
-
-      const fallbackToken = 'ya29.fallback-local-token-' + crypto.randomUUID();
-      tokenByEmail.set(profile.email, fallbackToken);
-
-      const account: GoogleAccount = {
-        id: 'oauth-local-fallback-' + crypto.randomUUID().slice(0, 8),
-        email: profile.email,
-        displayName: profile.name,
-        profileLabel: profile.label,
-        chromeProfile: chromeProfileLabel,
-        avatarUrl: undefined,
-        isLiveOAuth: true,
-        autoBackup: true,
-        lastSyncedAt: new Date().toISOString(),
-        storageUsedGb: Math.floor(Math.random() * 15) + 5,
-        mediaCount: Math.floor(Math.random() * 3) + 2,
-      };
-
-      console.warn('Firebase Auth popup falhou (domínio/popup). Conectando conta Google de suporte:', profile.email);
-      return { account, accessToken: fallbackToken };
-    }
-
     const message = formatGoogleAuthError(err, {
       hostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
       port: typeof window !== 'undefined' ? window.location.port : undefined,
