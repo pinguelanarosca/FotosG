@@ -279,6 +279,15 @@ export default function App() {
     }
   };
 
+  const handleRemoveAccount = (accountId: string) => {
+    setAccounts((prev) => prev.filter((a) => a.id !== accountId));
+    setMediaItems((prev) => prev.filter((m) => m.accountId !== accountId));
+    if (filters.accountId === accountId) {
+      setFilters((prev) => ({ ...prev, accountId: 'all' }));
+    }
+    showNotice('Conta Google removida do cofre.');
+  };
+
   const handleRunSmartSearch = async (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) {
@@ -758,6 +767,7 @@ export default function App() {
               isConnectingGoogle={isConnectingGoogle}
               onSyncLiveGoogleAccount={handleSyncLiveGoogleAccount}
               onOpenSystemUpdate={() => setIsUpdateModalOpen(true)}
+              onRemoveAccount={handleRemoveAccount}
             />
           )}
         </main>

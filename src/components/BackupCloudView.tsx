@@ -24,6 +24,7 @@ interface BackupCloudViewProps {
   isConnectingGoogle: boolean;
   onSyncLiveGoogleAccount: (account: GoogleAccount) => Promise<void>;
   onOpenSystemUpdate: () => void;
+  onRemoveAccount: (accountId: string) => void;
 }
 
 export function BackupCloudView({
@@ -41,6 +42,7 @@ export function BackupCloudView({
   isConnectingGoogle,
   onSyncLiveGoogleAccount,
   onOpenSystemUpdate,
+  onRemoveAccount,
 }: BackupCloudViewProps) {
   const [newPassphrase, setNewPassphrase] = useState('');
   const [passphraseStatus, setPassphraseStatus] = useState<string | null>(null);
@@ -203,15 +205,24 @@ export function BackupCloudView({
                     <span>Backup automático</span>
                   </label>
 
-                  {acc.isLiveOAuth && (
+                  <div className="flex items-center gap-3">
+                    {acc.isLiveOAuth && (
+                      <button
+                        type="button"
+                        onClick={() => onSyncLiveGoogleAccount(acc)}
+                        className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        Re-sincronizar
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => onSyncLiveGoogleAccount(acc)}
-                      className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                      onClick={() => onRemoveAccount(acc.id)}
+                      className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
                     >
-                      Re-sincronizar
+                      Remover
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}
