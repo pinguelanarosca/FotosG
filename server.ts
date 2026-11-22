@@ -830,10 +830,14 @@ ${JSON.stringify(catalog.slice(0, 60))}`,
           .catch(() => '');
 
         if (pkgBefore !== pkgAfter) {
-          await execFileAsync('npm', ['install', '--no-audit', '--no-fund'], {
-            cwd: __dirname,
-            shell: false,
-          });
+          await execFileAsync(
+            'npm',
+            ['install', '--legacy-peer-deps', '--no-audit', '--no-fund'],
+            {
+              cwd: __dirname,
+              shell: false,
+            }
+          );
           dependenciesInstalled = true;
         }
 
