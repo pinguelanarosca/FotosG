@@ -996,7 +996,7 @@ ${JSON.stringify(catalog.slice(0, 60))}`,
   attachLiveVaultWebSocket(new WebSocketServer({ server, path: '/api/live-vault' }));
 
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`CofreFoto server running on http://0.0.0.0:${PORT}`);
+    console.log(`CofreFoto server running on http://localhost:${PORT}`);
   });
 
   if (PORT !== LOCAL_PORT) {

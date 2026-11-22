@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 import type { GoogleAccount, MediaItem } from '../types/vault';
+import { formatGoogleAuthError } from '../utils/authError';
 
 export const GOOGLE_WORKSPACE_SCOPES = [
   'https://www.googleapis.com/auth/drive.photos.readonly',
@@ -85,6 +86,13 @@ export async function connectChromeGoogleAccount(
     };
 
     return { account, accessToken: credential.accessToken };
+  } catch (err) {
+    const message = formatGoogleAuthError(err, {
+      hostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
+      port: typeof window !== 'undefined' ? window.location.port : undefined,
+      projectId: firebaseConfig.projectId,
+    });
+    throw new Error(message);
   } finally {
     isSigningIn = false;
   }
