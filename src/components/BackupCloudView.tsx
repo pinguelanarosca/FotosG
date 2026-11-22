@@ -23,6 +23,7 @@ interface BackupCloudViewProps {
   onConnectGoogleAccount: () => void;
   isConnectingGoogle: boolean;
   onSyncLiveGoogleAccount: (account: GoogleAccount) => Promise<void>;
+  onOpenSystemUpdate: () => void;
 }
 
 export function BackupCloudView({
@@ -39,6 +40,7 @@ export function BackupCloudView({
   onConnectGoogleAccount,
   isConnectingGoogle,
   onSyncLiveGoogleAccount,
+  onOpenSystemUpdate,
 }: BackupCloudViewProps) {
   const [newPassphrase, setNewPassphrase] = useState('');
   const [passphraseStatus, setPassphraseStatus] = useState<string | null>(null);
@@ -67,15 +69,26 @@ export function BackupCloudView({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onRunEncryptedBackupNow}
-          disabled={isBackingUp}
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60 whitespace-nowrap shrink-0"
-        >
-          <RefreshCw className={`h-4 w-4 ${isBackingUp ? 'animate-spin' : ''}`} />
-          <span>{isBackingUp ? 'Criptografando...' : 'Executar Backup Agora'}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenSystemUpdate}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 whitespace-nowrap shrink-0"
+          >
+            <RefreshCw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span>Atualizar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onRunEncryptedBackupNow}
+            disabled={isBackingUp}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60 whitespace-nowrap shrink-0"
+          >
+            <RefreshCw className={`h-4 w-4 ${isBackingUp ? 'animate-spin' : ''}`} />
+            <span>{isBackingUp ? 'Criptografando...' : 'Executar Backup Agora'}</span>
+          </button>
+        </div>
       </div>
 
       <section aria-labelledby="e2ee-key-heading" className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">

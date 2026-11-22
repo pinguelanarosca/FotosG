@@ -7,6 +7,7 @@ import {
   MapPin,
   Mic,
   Moon,
+  RefreshCw,
   Search,
   Share2,
   ShieldCheck,
@@ -43,6 +44,7 @@ interface GalleryViewProps {
   onRunCatalogBatch: () => Promise<void>;
   isCataloging: boolean;
   onOpenLiveVoice: () => void;
+  onOpenSystemUpdate: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
 }
@@ -73,6 +75,7 @@ export function GalleryView({
   onRunCatalogBatch,
   isCataloging,
   onOpenLiveVoice,
+  onOpenSystemUpdate,
   darkMode,
   onToggleDarkMode,
 }: GalleryViewProps) {
@@ -128,6 +131,15 @@ export function GalleryView({
           >
             <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span>{isCataloging ? 'Catalogando...' : 'Catalogar com IA'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenSystemUpdate}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-medium text-slate-800 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 whitespace-nowrap shrink-0"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+            <span>Atualizar</span>
           </button>
 
           <button

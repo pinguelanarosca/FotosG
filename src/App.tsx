@@ -51,6 +51,7 @@ import { ShareModal } from './components/ShareModal';
 import { UploadEncryptModal } from './components/UploadEncryptModal';
 import { SafetyUnlockModal } from './components/SafetyUnlockModal';
 import { LiveAssistantDrawer } from './components/LiveAssistantDrawer';
+import { SystemUpdateModal } from './components/SystemUpdateModal';
 
 const INITIAL_FILTERS: MediaFilterState = {
   searchQuery: '',
@@ -102,6 +103,7 @@ export default function App() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSafetyModalOpen, setIsSafetyModalOpen] = useState(false);
   const [isLiveDrawerOpen, setIsLiveDrawerOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [statusNotice, setStatusNotice] = useState<{
     type: 'info' | 'error';
     text: string;
@@ -125,6 +127,17 @@ export default function App() {
     });
 
     const unsub = initGoogleAuthListener();
+
+    try {
+      const pendingNotice = sessionStorage.getItem('cofrefoto_post_update_notice');
+      if (pendingNotice) {
+        sessionStorage.removeItem('cofrefoto_post_update_notice');
+        setStatusNotice({ type: 'info', text: pendingNotice });
+      }
+    } catch {
+      // Ignore storage restrictions
+    }
+
     return () => {
       active = false;
       unsub();
@@ -286,10 +299,15 @@ export default function App() {
         matchedIds: string[];
         suggestedCluster?: ContentCluster;
         explanation?: string;
+        modelUsed?: string;
       };
       setSmartMatchedIds(data.matchedIds);
       if (data.explanation) {
-        setSmartSearchMessage(`IA: ${data.explanation}`);
+        setSmartSearchMessage(
+          data.modelUsed
+            ? `IA (${data.modelUsed}): ${data.explanation}`
+            : `IA: ${data.explanation}`
+        );
       }
     } catch {
       setSmartMatchedIds(null);
@@ -328,6 +346,7 @@ export default function App() {
           isNsfw18Plus: boolean;
           nsfwScore: number;
         }>;
+        modelUsed?: string;
       };
 
       const updates = new Map(data.results.map((r) => [r.id, r]));
@@ -346,7 +365,11 @@ export default function App() {
           };
         })
       );
-      showNotice(`${data.results.length} mídias recatalogadas automaticamente pela IA.`);
+      showNotice(
+        data.modelUsed
+          ? `${data.results.length} mídias recatalogadas automaticamente via ${data.modelUsed}.`
+          : `${data.results.length} mídias recatalogadas automaticamente pela IA.`
+      );
     } catch (err) {
       showNotice(err instanceof Error ? err.message : 'Erro ao catalogar mídias.', 'error');
     } finally {
@@ -627,6 +650,7 @@ export default function App() {
               onRunCatalogBatch={handleRunCatalogBatch}
               isCataloging={isCataloging}
               onOpenLiveVoice={() => setIsLiveDrawerOpen(true)}
+              onOpenSystemUpdate={() => setIsUpdateModalOpen(true)}
               darkMode={darkMode}
               onToggleDarkMode={() => setDarkMode((d) => !d)}
             />
@@ -707,6 +731,7 @@ export default function App() {
               onConnectGoogleAccount={handleConnectGoogleAccount}
               isConnectingGoogle={isConnectingGoogle}
               onSyncLiveGoogleAccount={handleSyncLiveGoogleAccount}
+              onOpenSystemUpdate={() => setIsUpdateModalOpen(true)}
             />
           )}
         </main>
@@ -766,6 +791,19 @@ export default function App() {
           }));
           setActiveSection('gallery');
         }}
+      />
+
+      <SystemUpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => {
+          try {
+            sessionStorage.removeItem('cofrefoto_post_update_notice');
+          } catch {
+            // Ignore storage restrictions
+          }
+          setIsUpdateModalOpen(false);
+        }}
+        onUpdateComplete={(summary) => showNotice(summary)}
       />
     </div>
   );
