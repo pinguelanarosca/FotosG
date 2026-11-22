@@ -179,7 +179,8 @@ export default function App() {
     setStatusNotice(null);
     try {
       const { account, accessToken } = await connectChromeGoogleAccount(
-        `Chrome Perfil ${accounts.length + 1}`
+        `Chrome Perfil ${accounts.length + 1}`,
+        accounts.map((a) => a.email)
       );
       const [livePhotos, liveContacts] = await Promise.all([
         fetchGoogleDrivePhotos(accessToken, account.id).catch(() => []),
