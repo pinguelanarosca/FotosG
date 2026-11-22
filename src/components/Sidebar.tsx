@@ -55,7 +55,7 @@ export function Sidebar({
   isOpenMobile,
   onCloseMobile,
 }: SidebarProps) {
-  const totalMediaCount = accounts.reduce((acc, item) => acc + item.mediaCount, 0);
+  const totalMediaCount = clusterCounts.all;
 
   const sidebarContent = (
     <div className="flex h-full flex-col justify-between overflow-y-auto px-4 py-5">
@@ -106,34 +106,40 @@ export function Sidebar({
               </span>
             </button>
 
-            {accounts.map((account) => {
-              const active = selectedAccountId === account.id;
-              return (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={() => {
-                    onSelectAccount(account.id);
-                    onCloseMobile();
-                  }}
-                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition-colors ${
-                    active
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
-                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70'
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{account.profileLabel}</div>
-                    <div className="truncate text-xs text-slate-500 dark:text-slate-400">
-                      {account.email}
+            {accounts.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-2.5 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                Nenhuma conta conectada ainda.
+              </p>
+            ) : (
+              accounts.map((account) => {
+                const active = selectedAccountId === account.id;
+                return (
+                  <button
+                    key={account.id}
+                    type="button"
+                    onClick={() => {
+                      onSelectAccount(account.id);
+                      onCloseMobile();
+                    }}
+                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition-colors ${
+                      active
+                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">{account.profileLabel}</div>
+                      <div className="truncate text-xs text-slate-500 dark:text-slate-400">
+                        {account.email}
+                      </div>
                     </div>
-                  </div>
-                  <span className="font-mono text-xs tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
-                    {account.mediaCount}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="font-mono text-xs tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
+                      {account.mediaCount}
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
 
           <button

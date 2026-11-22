@@ -45,6 +45,9 @@ interface GalleryViewProps {
   isCataloging: boolean;
   onOpenLiveVoice: () => void;
   onOpenSystemUpdate: () => void;
+  onConnectGoogleAccount: () => void;
+  isConnectingGoogle: boolean;
+  onOpenUploadModal: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
 }
@@ -76,6 +79,9 @@ export function GalleryView({
   isCataloging,
   onOpenLiveVoice,
   onOpenSystemUpdate,
+  onConnectGoogleAccount,
+  isConnectingGoogle,
+  onOpenUploadModal,
   darkMode,
   onToggleDarkMode,
 }: GalleryViewProps) {
@@ -126,7 +132,7 @@ export function GalleryView({
           <button
             type="button"
             onClick={onRunCatalogBatch}
-            disabled={isCataloging}
+            disabled={isCataloging || totalCount === 0}
             className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-medium text-slate-800 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 whitespace-nowrap shrink-0"
           >
             <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
@@ -179,7 +185,7 @@ export function GalleryView({
               onChange={(e) =>
                 onChangeFilters({ ...filters, searchQuery: e.target.value })
               }
-              placeholder="Buscar por festas, trilha ao ar livre, Florianópolis, Ana Clara..."
+              placeholder="Buscar por festas, trilhas, viagens, cidade ou data..."
               className="h-10 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-blue-500"
             />
           </div>
@@ -319,7 +325,35 @@ export function GalleryView({
         </div>
       </section>
 
-      {items.length === 0 ? (
+      {totalCount === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-900">
+          <ShieldCheck className="h-9 w-9 text-blue-600 dark:text-blue-400" />
+          <h2 className="mt-3 font-display text-base font-semibold text-slate-900 dark:text-slate-100">
+            Seu cofre está vazio
+          </h2>
+          <p className="mt-1 max-w-md text-sm text-slate-600 dark:text-slate-400">
+            Conecte uma conta Google para sincronizar suas fotos e vídeos ou envie arquivos locais
+            com criptografia AES-256-GCM.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+            <button
+              type="button"
+              onClick={onConnectGoogleAccount}
+              disabled={isConnectingGoogle}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {isConnectingGoogle ? 'Conectando...' : 'Conectar conta Google'}
+            </button>
+            <button
+              type="button"
+              onClick={onOpenUploadModal}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              Enviar e criptografar mídia
+            </button>
+          </div>
+        </div>
+      ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-900">
           <Search className="h-8 w-8 text-slate-400" />
           <h2 className="mt-3 font-display text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -462,7 +496,10 @@ export function GalleryView({
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
                     <span className="font-mono tabular-nums">{dateStr}</span>
                     <span aria-hidden="true">·</span>
-                    <span>{account?.profileLabel ?? 'Google'}</span>
+                    <span>
+                      {account?.profileLabel ??
+                        (item.accountId === 'local-vault' ? 'Cofre Local' : 'Google')}
+                    </span>
                     <span aria-hidden="true">·</span>
                     <span className="font-mono tabular-nums">
                       {formatBytesCompact(item.sizeBytes)}

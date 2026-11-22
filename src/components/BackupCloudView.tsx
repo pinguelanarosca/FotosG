@@ -147,56 +147,76 @@ export function BackupCloudView({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {accounts.map((acc) => (
-            <div
-              key={acc.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+        {accounts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              Nenhuma conta Google conectada
+            </p>
+            <p className="mt-1 max-w-md text-xs text-slate-600 dark:text-slate-400">
+              Conecte uma ou mais contas Google do Chrome para sincronizar mídias e habilitar o
+              backup automático criptografado.
+            </p>
+            <button
+              type="button"
+              onClick={onConnectGoogleAccount}
+              disabled={isConnectingGoogle}
+              className="mt-4 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="truncate font-display text-sm font-semibold text-slate-950 dark:text-slate-100">
-                    {acc.displayName}
+              {isConnectingGoogle ? 'Conectando...' : 'Conectar conta Google'}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {accounts.map((acc) => (
+              <div
+                key={acc.id}
+                className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="truncate font-display text-sm font-semibold text-slate-950 dark:text-slate-100">
+                      {acc.displayName}
+                    </div>
+                    <div className="truncate text-xs text-slate-500 dark:text-slate-400">
+                      {acc.email}
+                    </div>
                   </div>
-                  <div className="truncate text-xs text-slate-500 dark:text-slate-400">
-                    {acc.email}
-                  </div>
+                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 shrink-0">
+                    {acc.isLiveOAuth ? 'OAuth Ativo' : 'Sincronizada'}
+                  </span>
                 </div>
-                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 shrink-0">
-                  {acc.isLiveOAuth ? 'OAuth Ativo' : 'Sincronizada'}
-                </span>
-              </div>
 
-              <div className="mt-3 text-xs text-slate-600 dark:text-slate-400">
-                {acc.chromeProfile} ·{' '}
-                <span className="font-mono tabular-nums">{acc.mediaCount}</span> mídias ·{' '}
-                <span className="font-mono tabular-nums">{acc.storageUsedGb.toFixed(1)} GB</span>
-              </div>
+                <div className="mt-3 text-xs text-slate-600 dark:text-slate-400">
+                  {acc.chromeProfile} ·{' '}
+                  <span className="font-mono tabular-nums">{acc.mediaCount}</span> mídias ·{' '}
+                  <span className="font-mono tabular-nums">{acc.storageUsedGb.toFixed(1)} GB</span>
+                </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
-                <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={acc.autoBackup}
-                    onChange={() => onToggleAccountBackup(acc.id)}
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600"
-                  />
-                  <span>Backup automático</span>
-                </label>
+                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
+                  <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={acc.autoBackup}
+                      onChange={() => onToggleAccountBackup(acc.id)}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                    />
+                    <span>Backup automático</span>
+                  </label>
 
-                {acc.isLiveOAuth && (
-                  <button
-                    type="button"
-                    onClick={() => onSyncLiveGoogleAccount(acc)}
-                    className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-                  >
-                    Re-sincronizar
-                  </button>
-                )}
+                  {acc.isLiveOAuth && (
+                    <button
+                      type="button"
+                      onClick={() => onSyncLiveGoogleAccount(acc)}
+                      className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    >
+                      Re-sincronizar
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="cloud-targets-heading" className="space-y-3">
@@ -291,31 +311,43 @@ export function BackupCloudView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {backupLogs.map((log) => (
-                  <tr key={log.id}>
-                    <td className="px-4 py-2.5 font-mono tabular-nums text-slate-600 dark:text-slate-400">
-                      {new Date(log.timestamp).toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-4 py-2.5 font-medium text-slate-900 dark:text-slate-200">
-                      {log.targetName}
-                    </td>
-                    <td className="px-4 py-2.5 font-mono tabular-nums text-slate-700 dark:text-slate-300">
-                      {log.itemsEncrypted}
-                    </td>
-                    <td className="px-4 py-2.5 font-mono tabular-nums text-slate-700 dark:text-slate-300">
-                      {formatBytesCompact(log.bytesProcessed)}
-                    </td>
-                    <td className="px-4 py-2.5 font-mono text-slate-500 dark:text-slate-400">
-                      {log.manifestHash}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span>Concluído</span>
-                      </span>
+                {backupLogs.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-xs text-slate-500 dark:text-slate-400"
+                    >
+                      Nenhum backup executado ainda. Conecte um serviço de nuvem e clique em
+                      &quot;Executar Backup Agora&quot;.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  backupLogs.map((log) => (
+                    <tr key={log.id}>
+                      <td className="px-4 py-2.5 font-mono tabular-nums text-slate-600 dark:text-slate-400">
+                        {new Date(log.timestamp).toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-2.5 font-medium text-slate-900 dark:text-slate-200">
+                        {log.targetName}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono tabular-nums text-slate-700 dark:text-slate-300">
+                        {log.itemsEncrypted}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono tabular-nums text-slate-700 dark:text-slate-300">
+                        {formatBytesCompact(log.bytesProcessed)}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-slate-500 dark:text-slate-400">
+                        {log.manifestHash}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>Concluído</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

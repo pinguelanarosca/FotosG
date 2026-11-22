@@ -83,7 +83,8 @@ export function MediaLightboxModal({
                 {item.title}
               </h2>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                {account?.email ?? 'Google Fotos'}
+                {account?.email ??
+                  (item.accountId === 'local-vault' ? 'Cofre Local' : 'Google Fotos')}
               </p>
             </div>
 

@@ -651,6 +651,9 @@ export default function App() {
               isCataloging={isCataloging}
               onOpenLiveVoice={() => setIsLiveDrawerOpen(true)}
               onOpenSystemUpdate={() => setIsUpdateModalOpen(true)}
+              onConnectGoogleAccount={handleConnectGoogleAccount}
+              isConnectingGoogle={isConnectingGoogle}
+              onOpenUploadModal={() => setIsUploadModalOpen(true)}
               darkMode={darkMode}
               onToggleDarkMode={() => setDarkMode((d) => !d)}
             />

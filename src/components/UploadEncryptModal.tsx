@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Lock, Sparkles, Upload, X } from 'lucide-react';
-import type { ContentCluster, GoogleAccount, MediaItem } from '../types/vault';
+import { useEffect, useState } from 'react';
+import { Lock, Sparkles, X } from 'lucide-react';
+import type { ContentCluster, GoogleAccount } from '../types/vault';
 
 interface UploadEncryptModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export function UploadEncryptModal({
 }: UploadEncryptModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
-  const [accountId, setAccountId] = useState(accounts[0]?.id ?? '');
+  const [accountId, setAccountId] = useState(accounts[0]?.id ?? 'local-vault');
   const [cluster, setCluster] = useState<Exclude<ContentCluster, 'all'>>('ar_livre');
   const [location, setLocation] = useState('São Paulo, SP');
   const [tagsText, setTagsText] = useState('backup, cofre');
@@ -33,6 +33,14 @@ export function UploadEncryptModal({
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (accounts.length > 0 && (!accountId || accountId === 'local-vault')) {
+      setAccountId(accounts[0].id);
+    } else if (accounts.length === 0 && accountId !== 'local-vault') {
+      setAccountId('local-vault');
+    }
+  }, [accounts, accountId]);
 
   if (!isOpen) return null;
 
@@ -115,7 +123,7 @@ export function UploadEncryptModal({
       await onUploadAndEncrypt({
         file,
         title: title.trim(),
-        accountId: accountId || accounts[0]?.id || 'acc-pessoal',
+        accountId: accountId || accounts[0]?.id || 'local-vault',
         cluster: isNsfw18Plus ? 'nsfw_18' : cluster,
         location: location.trim() || 'Local não informado',
         tags: tagsText
@@ -218,11 +226,15 @@ export function UploadEncryptModal({
                 onChange={(e) => setAccountId(e.target.value)}
                 className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
               >
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.profileLabel} ({acc.email})
-                  </option>
-                ))}
+                {accounts.length === 0 ? (
+                  <option value="local-vault">Cofre Local (sem conta Google vinculada)</option>
+                ) : (
+                  accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.profileLabel} ({acc.email})
+                    </option>
+                  ))
+                )}
               </select>
             </div>
           </div>
